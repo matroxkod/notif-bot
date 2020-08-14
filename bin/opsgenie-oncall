@@ -1,0 +1,31 @@
+#!/usr/bin/env node
+
+console.log("aha")
+require('dotenv').config();
+const https = require('https');
+console.log(process.env.OPSGENIE_KEY)
+console.log(process.env.SLACK_WORKFLOW_URL)
+const axios = require('axios');
+
+
+const postSlack = (email, title, body) => {
+  axios.post(process.env.SLACK_WORKFLOW_URL, {title: title, body: body, mentions: email}, {headers: {'Content-Type': 'application/json'} })
+    .then(function (response) {
+      console.log(response);
+    })
+    .catch(function (error) {
+      console.log(error);
+      debugger;
+    });
+}
+
+axios.get('https://api.opsgenie.com/v2/schedules/b3fc5b2b-127d-4646-81b2-d7cf5ebf5090/on-calls', {"headers": {"Authorization": 'GenieKey ' + process.env.OPSGENIE_KEY}})
+  .then((response) => {
+    let title = response.data.data._parent.name;
+    let email = response.data.data.onCallParticipants[0].name;
+    let body = "Poor man on call today is " + response.data.data.onCallParticipants.map((person) => person.name );
+    postSlack(email, title, body);
+  })
+  .catch(error => {
+    console.log(error);
+  });
