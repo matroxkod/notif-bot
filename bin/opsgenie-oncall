@@ -13,7 +13,7 @@ if (wday == 0 || wday == 6) {
 }
 
 const postSlack = (email, title, body) => {
-  axios.post(process.env.SLACK_WORKFLOW_URL, {title: title, body: body, mentions: ''}, {headers: {'Content-Type': 'application/json'} })
+  axios.post(process.env.SLACK_WORKFLOW_URL, {title: title, body: body, mentions: email}, {headers: {'Content-Type': 'application/json'} })
     .then(function (response) {
       console.log(response);
     })
