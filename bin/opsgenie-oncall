@@ -22,11 +22,11 @@ const postSlack = (email, title, body) => {
     });
 }
 
-axios.get('https://api.opsgenie.com/v2/schedules/b3fc5b2b-127d-4646-81b2-d7cf5ebf5090/on-calls', {"headers": {"Authorization": 'GenieKey ' + process.env.OPSGENIE_KEY}})
+axios.get('https://api.opsgenie.com/v2/schedules/b7c307b5-479c-46c5-a46c-173f0efe46f9/on-calls', {"headers": {"Authorization": 'GenieKey ' + process.env.OPSGENIE_KEY}})
   .then((response) => {
     let title = response.data.data._parent.name;
     let email = response.data.data.onCallParticipants[0].name;
-    let body = "Poor man on call today is "
+    let body = "On-call today is "
     postSlack(email, title, body);
   })
   .catch(error => {
