@@ -1,19 +1,38 @@
 #!/usr/bin/env node
 
 require('dotenv').config();
+const moment = require('moment-timezone');
 const https = require('https');
 const axios = require('axios');
 
 const today = new Date();
 const wday = today.getDay();
 
+const getYesterdayString = () => {
+  return moment().tz("America/Los_Angeles").subtract(1, "day").format();
+}
+
+const getLastFridayString = () => {
+  return moment().tz("America/Los_Angeles").day(-2).format();
+}
+
 if (wday == 0 || wday == 6) {
   // do not remind in slack at weekend
   process.exit();
 }
 
-const postSlack = (email, title, body) => {
-  axios.post(process.env.SLACK_WORKFLOW_URL, {title: title, body: body, mentions: email}, {headers: {'Content-Type': 'application/json'} })
+let lastOnCallDay
+
+if (wday == 1) {
+  //monday, compare last Friday's oncall person
+   lastOnCallDay = getLastFridayString();
+} else {
+   lastOnCallDay = getYesterdayString();
+}
+
+
+const postSlack = (onCallEmail, LastOnCallEmail, startDate, endDate) => {
+  axios.post(process.env.SLACK_WORKFLOW_URL, {on_call_user: onCallEmail, last_on_call_user: LastOnCallEmail, start_date: startDate, end_date: endDate}, {headers: {'Content-Type': 'application/json'} })
     .then(function (response) {
       console.log(response);
     })
@@ -22,13 +41,39 @@ const postSlack = (email, title, body) => {
     });
 }
 
-axios.get('https://api.opsgenie.com/v2/schedules/b7c307b5-479c-46c5-a46c-173f0efe46f9/on-calls', {"headers": {"Authorization": 'GenieKey ' + process.env.OPSGENIE_KEY}})
-  .then((response) => {
-    let title = response.data.data._parent.name;
-    let email = response.data.data.onCallParticipants[0].name;
-    let body = "On-call today is "
-    postSlack(email, title, body);
+const opsGenieApiGet = (url) => {
+  return axios.get(url, {"headers": {"Authorization": 'GenieKey ' + process.env.OPSGENIE_KEY}})
+}
+
+const whoIsOnCall = async (date) => {
+  let url = 'https://api.opsgenie.com/v2/schedules/b7c307b5-479c-46c5-a46c-173f0efe46f9/on-calls';
+  if (date) {
+    url = url + "?date=" + date
+  }
+
+  const response = await opsGenieApiGet(url);
+  //let title = response.data.data._parent.name;
+  let email = response.data.data.onCallParticipants[0].name;
+  return email;
+}
+
+const onCallTimeline = async () => {
+  const response = await opsGenieApiGet("https://api.opsgenie.com/v2/schedules/b7c307b5-479c-46c5-a46c-173f0efe46f9/timeline");
+  return [response.data.data.startDate, response.data.data.endDate]
+}
+
+onCallTimeline().then((period) => {
+  whoIsOnCall().then((email) => {
+    whoIsOnCall(lastOnCallDay).then((email2) => {
+      if (email == email2) {
+        // same person skip notification
+        console.log("same " + email)
+      } else {
+        // different person, send rotation notification
+        console.log("different "+ email + " vs " + email2)
+
+        postSlack( email, email2, moment(period[0]).format('LL'), moment(period[1]).format('LL'))
+      }
+    })
   })
-  .catch(error => {
-    console.log(error);
-  });
+});

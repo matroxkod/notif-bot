@@ -1,10 +1,14 @@
-# Botkit Starter Kit
+# Custom OpsGenie slack integration
 
-This is a Botkit starter kit for slack, created with the [Yeoman generator](https://github.com/howdyai/botkit/tree/master/packages/generator-botkit#readme).
+This app will be deployed in heroku with scheduler, automatically send on-call rotation notification to team channel
 
-To complete the configuration of this bot, make sure to update the included `.env` file with your platform tokens and credentials.
+## what you need?
+- OpsGenie team integration API key. Team admin can create team level WEB API integration, and you get the key from there.
+- A Slack webhook url, you need to use slack workflow builder tool to create a workflow, it will generate a unique webhook URL, 
+you will call that URL to trigger the workflow. 
+In our case, just send a message to a channel. You can do more with the builder.
+- A free Heroku account, you will use heroku scheduler to run a task
 
-[Botkit Docs](https://botkit.ai/docs/v4)
 
-This bot is powered by [a folder full of modules](https://botkit.ai/docs/v4/core.html#organize-your-bot-code). 
-Edit the samples, and add your own in the [features/](features/) folder.
+### Note
+You can skip the bot code, only one file is in use - `bin/opsgenie-oncall`.  
