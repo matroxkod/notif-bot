@@ -54,14 +54,19 @@ const whoIsOnCall = async (date) => {
   const response = await opsGenieApiGet(url);
   //let title = response.data.data._parent.name;
   let email = response.data.data.onCallParticipants[0].name;
+  console.log('Response from whoIsOnCall');
+  console.log(response);
   return email;
 }
 
 const onCallTimeline = async () => {
   const response = await opsGenieApiGet("https://api.opsgenie.com/v2/schedules/751a6d86-63f2-4233-8120-f09326713644/timeline");
+  console.log('Response from onCallTimeline');
+  console.log(response);
   return [response.data.data.startDate, response.data.data.endDate]
 }
 
+console.log('Start of notify sequence);
 onCallTimeline().then((period) => {
   whoIsOnCall().then((email) => {
     whoIsOnCall(lastOnCallDay).then((email2) => {
