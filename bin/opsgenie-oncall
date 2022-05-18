@@ -46,7 +46,7 @@ const opsGenieApiGet = (url) => {
 }
 
 const whoIsOnCall = async (date) => {
-  let url = 'https://api.opsgenie.com/v2/schedules/b7c307b5-479c-46c5-a46c-173f0efe46f9/on-calls';
+  let url = 'https://api.opsgenie.com/v2/schedules/751a6d86-63f2-4233-8120-f09326713644/on-calls';
   if (date) {
     url = url + "?date=" + date
   }
@@ -58,7 +58,7 @@ const whoIsOnCall = async (date) => {
 }
 
 const onCallTimeline = async () => {
-  const response = await opsGenieApiGet("https://api.opsgenie.com/v2/schedules/b7c307b5-479c-46c5-a46c-173f0efe46f9/timeline");
+  const response = await opsGenieApiGet("https://api.opsgenie.com/v2/schedules/751a6d86-63f2-4233-8120-f09326713644/timeline");
   return [response.data.data.startDate, response.data.data.endDate]
 }
 
